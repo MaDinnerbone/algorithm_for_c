@@ -9,7 +9,7 @@
 
 void (*const sort_funcs[])(int *, size_t) = {
     insertion_sort, shell_sort, selection_sort,
-    heap_sort, bubble_sort, quick_sort, merge_sort
+    heap_sortB, bubble_sort, quick_sort, merge_sort
 };
 
 // 辅助 交换函数
@@ -20,7 +20,7 @@ static void swap(int *a, int *b) {
 }
 
 // 辅助 堆排序下沉函数
-static void heapify(int *array, size_t num_elements, size_t node_idx) {
+static void heapifyA(int *array, size_t num_elements, size_t node_idx) {
     size_t left_child_idx, right_child_idx, larger_child_idx;
     left_child_idx = 2 * node_idx + 1;
     right_child_idx = 2 * node_idx + 2;
@@ -40,7 +40,25 @@ static void heapify(int *array, size_t num_elements, size_t node_idx) {
         temp = array[node_idx];
         array[node_idx] = array[larger_child_idx];
         array[larger_child_idx] = temp;
-        heapify(array, num_elements, larger_child_idx);
+        heapifyA(array, num_elements, larger_child_idx);
+    }
+}
+
+void heapifyB(int *array, size_t idx, size_t heap_size) {
+    size_t largest = idx;
+    size_t left = 2 * idx + 1;
+    size_t right = 2 * idx + 2;
+    
+    if (left < heap_size && array[left] > array[largest]) {
+        largest = left;
+    }
+    if (right < heap_size && array[right] > array[largest]) {
+        largest = right;
+    }
+    
+    if (largest != idx) {
+        swap(array + idx, array + largest);
+        heapifyB(array, largest, heap_size);
     }
 }
 
@@ -167,15 +185,30 @@ void selection_sort(int *array, size_t num_elements) {
 }
 
 // 堆排序
-void heap_sort(int *array, size_t num_elements) {
+void heap_sortA(int *array, size_t num_elements) {
     size_t i;
     for (i = num_elements / 2 - 1; i >= 0; i--) {
-        heapify(array, num_elements, i);
+        heapifyA(array, num_elements, i);
     }
 
     for (i = num_elements - 1; i > 0; i--) {
         swap(&array[0], &array[i]);
-        heapify(array, i, 0);
+        heapifyA(array, i, 0);
+    }
+}
+
+void heap_sortB(int *array, size_t num_elements) {
+    size_t n = num_elements;
+    
+    // 构建最大堆
+    for (size_t i = n / 2; i > 0; i--) {
+        heapifyB(array, i - 1, n);
+    }
+    
+    // 交换根节点和最后一个节点，然后重新调整堆
+    for (size_t i = n - 1; i > 0; i--) {
+        swap(array + 0, array + i); // 交换堆顶和最后一个元素
+        heapifyB(array, 0, i - 1);  // 重新调整堆
     }
 }
 
@@ -307,10 +340,8 @@ void sort_testB() {
             case 0: sort_name = "Insertion"; break;
             case 1: sort_name = "Shell"; break;
             case 2: sort_name = "Selection"; break;
-            case 3: 
-            /* Error or too slow to stuck the programe
-            sort_name = "Heap"; */
-            i=4; break;
+            case 3: sort_name = "HeapB"; break;
+            /* Error or too slow to stuck the programe */
             case 4: sort_name = "Bubble"; break;
             case 5: sort_name = "Quick"; break;
             case 6: sort_name = "Merge"; break;

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-// static void swap(int *a, int *b);
+// void swap(int *array, int index_a, int index_b);
 
 void insertion_sort(int *array, size_t num_elements);
 
@@ -14,7 +14,8 @@ void shell_sort(int *array, size_t num_elements);
 void selection_sort(int *array, size_t num_elements);
 
 // static void heapify(int *array, size_t num_elements, size_t node_idx);
-void heap_sort(int *array, size_t num_elements);
+void heap_sortA(int *array, size_t num_elements);
+void heap_sortB(int *array, size_t num_elements);
 
 void bubble_sort(int *array, size_t num_elements);
 
