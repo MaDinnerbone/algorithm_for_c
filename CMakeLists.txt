@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 
 project(
-    algorithm_for_c VERSION 0.0.1 
+    algorithm_for_c VERSION 0.0.2
     DESCRIPTION "C language algorithm collection"
     LANGUAGES C
 )
@@ -18,12 +18,12 @@ set(PROJECT_SOURCE_DIR .)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 # target_include_directories(algorithm_for_c PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
-aux_source_directory(./src src)
+# aux_source_directory(SOURCE_DIR ./src)
 include_directories(./include)
 
-add_compile_options(-std=c11 -Wall -O0)
+add_compile_options(-static -std=c11 -Wall -O0)
 
-add_executable(algorithm_for_c ${src} ./src/hashmap.c main.c)
+add_executable(algorithm_for_c  main.c ./src/hashmap.c ./src/sort.c ./src/helper.c)
 
 
 
