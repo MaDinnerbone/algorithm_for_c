@@ -9,7 +9,7 @@
 
 void (*const sort_funcs[])(int *, size_t) = {
     insertion_sort, shell_sort, selection_sort,
-    heap_sortB, bubble_sort, quick_sort, merge_sort
+    heap_sort, bubble_sort, quick_sort, merge_sort
 };
 
 // 辅助 交换函数
@@ -20,31 +20,7 @@ static void swap(int *a, int *b) {
 }
 
 // 辅助 堆排序下沉函数
-static void heapifyA(int *array, size_t num_elements, size_t node_idx) {
-    size_t left_child_idx, right_child_idx, larger_child_idx;
-    left_child_idx = 2 * node_idx + 1;
-    right_child_idx = 2 * node_idx + 2;
-    int temp;
-
-    if ((left_child_idx < num_elements) && (array[left_child_idx] > array[node_idx])) {
-        larger_child_idx = left_child_idx;
-    } else {
-        larger_child_idx = node_idx;
-    }
-
-    if ((right_child_idx < num_elements) && (array[right_child_idx] > array[larger_child_idx])) {
-        larger_child_idx = right_child_idx;
-    }
-
-    if (larger_child_idx != node_idx) {
-        temp = array[node_idx];
-        array[node_idx] = array[larger_child_idx];
-        array[larger_child_idx] = temp;
-        heapifyA(array, num_elements, larger_child_idx);
-    }
-}
-
-void heapifyB(int *array, size_t idx, size_t heap_size) {
+void heapify(int *array, size_t idx, size_t heap_size) {
     size_t largest = idx;
     size_t left = 2 * idx + 1;
     size_t right = 2 * idx + 2;
@@ -58,29 +34,36 @@ void heapifyB(int *array, size_t idx, size_t heap_size) {
     
     if (largest != idx) {
         swap(array + idx, array + largest);
-        heapifyB(array, largest, heap_size);
+        heapify(array, largest, heap_size);
     }
 }
 
+
 // 快速排序 分区函数
+
 static size_t partition(int *array, size_t low, size_t high) {
-    int pivot = array[high];
-    size_t i = (low - 1);
+    int pivot = array[high]; // 选择基准值为区间的最后元素
+    size_t i = low; // i 从区间的起始位置开始
     for (size_t j = low; j < high; j++) {
         if (array[j] < pivot) {
+            swap(array + i, array + j); // 比基准值小的元素交换到左侧
             i++;
-            swap(&array[i], &array[j]);
         }
     }
-    swap(&array[i + 1], &array[high]);
-    return i + 1;
+    swap(array + i, array + high);
+    return i; // 基准值最终位置
 }
+
 // 辅助 快速排序函数
 static void quick_sort_helper(int *array, size_t low, size_t high) {
     if (low < high) {
-        size_t pi = partition(array, low, high);
-        quick_sort_helper(array, low, pi - 1);
-        quick_sort_helper(array, pi + 1, high);
+        size_t pi = partition(array, low, high);// 获取基准值的最终位置
+        if (pi > low) {
+            quick_sort_helper(array, low, pi - 1);// 递归地对左侧子数组进行快速排序
+        }
+        if (pi < high) {
+            quick_sort_helper(array, pi + 1, high);// 递归地对右侧子数组进行快速排序
+        }
     }
 }
 
@@ -185,30 +168,18 @@ void selection_sort(int *array, size_t num_elements) {
 }
 
 // 堆排序
-void heap_sortA(int *array, size_t num_elements) {
-    size_t i;
-    for (i = num_elements / 2 - 1; i >= 0; i--) {
-        heapifyA(array, num_elements, i);
-    }
-
-    for (i = num_elements - 1; i > 0; i--) {
-        swap(&array[0], &array[i]);
-        heapifyA(array, i, 0);
-    }
-}
-
-void heap_sortB(int *array, size_t num_elements) {
+void heap_sort(int *array, size_t num_elements) {
     size_t n = num_elements;
     
     // 构建最大堆
     for (size_t i = n / 2; i > 0; i--) {
-        heapifyB(array, i - 1, n);
+        heapify(array, i - 1, n);
     }
     
     // 交换根节点和最后一个节点，然后重新调整堆
     for (size_t i = n - 1; i > 0; i--) {
         swap(array + 0, array + i); // 交换堆顶和最后一个元素
-        heapifyB(array, 0, i - 1);  // 重新调整堆
+        heapify(array, 0, i - 1);  // 重新调整堆
     }
 }
 
@@ -230,6 +201,7 @@ void quick_sort(int *array, size_t num_elements) {
     quick_sort_helper(array, 0, num_elements - 1);
 }
 
+
 // 归并排序
 void merge_sort(int *array, size_t num_elements) {
     merge_sort_helper(array, 0, num_elements - 1);
@@ -238,89 +210,8 @@ void merge_sort(int *array, size_t num_elements) {
 
 
 // 测试程序 test
-void sort_testA(){
-    const size_t array_size = 1000; // 数组大小
-    int *array = malloc(array_size * sizeof(int));
-    srand((unsigned)time(NULL)); // 初始化随机数
 
-    if (array == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-    }
-
-    printf("Original array: \n");
-    generate_random_array(array, array_size);
-    print_array(array, array_size);
-
-    // 
-    printf("\nTesting sorting algorithms:\n\n");
-
-    // 插入排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Insertion sort time: %f seconds\n", measure_sorting_time(insertion_sort, array, array_size));
-    printf("Insertion sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    free(array);
-
-    // 希尔排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Shell sort time: %f seconds\n", measure_sorting_time(shell_sort, array, array_size));
-    printf("Shell sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    free(array);
-
-    // 选择排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Selection sort time: %f seconds\n", measure_sorting_time(selection_sort, array, array_size));
-    printf("Selection sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    free(array);
-
-    /* Error or too slow
-
-    // 堆排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Heap sort time: %f seconds\n", measure_sorting_time(heap_sort, array, array_size));
-    printf("Heap sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    */
-
-    // 冒泡排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Bubble sort time: %f seconds\n", measure_sorting_time(bubble_sort, array, array_size));
-    printf("Bubble sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    free(array);
-
-    // 快速排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Quick sort time: %f seconds\n", measure_sorting_time(quick_sort, array, array_size));
-    printf("Quick sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    free(array);
-
-    // 归并排序
-    generate_random_array(array, array_size); // 重置为新的随机数组
-    printf("Merge sort time: %f seconds\n", measure_sorting_time(merge_sort, array, array_size));
-    printf("Merge sort result:\n");
-    print_array(array, array_size);
-    printf("\n");
-
-    free(array);
-}
-
-void sort_testB() {
+void sort_test() {
     size_t array_size = ARRAY_SIZE; // 定义数组大小
     int *array = malloc(array_size * sizeof(int));
 
@@ -340,7 +231,7 @@ void sort_testB() {
             case 0: sort_name = "Insertion"; break;
             case 1: sort_name = "Shell"; break;
             case 2: sort_name = "Selection"; break;
-            case 3: sort_name = "HeapB"; break;
+            case 3: sort_name = "Heap"; break;
             /* Error or too slow to stuck the programe */
             case 4: sort_name = "Bubble"; break;
             case 5: sort_name = "Quick"; break;
